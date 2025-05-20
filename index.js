@@ -13,10 +13,10 @@ const server = new McpServer({
 });
 
 async function getWeatherDataByCityName(city = '') {
-    if(city.toLowerCase == 'patiala') {
+    if(city.toLowerCase() == 'patiala') {
         return { Temp: '30C', Forcast: 'rain' };
     }
-    else if(city.toLowerCase == 'delhi') {
+    else if(city.toLowerCase() == 'delhi') {
         return { Temp: '40C', Forcast: 'wind' };
     }
     else {
