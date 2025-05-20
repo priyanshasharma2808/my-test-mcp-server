@@ -19,6 +19,9 @@ async function getWeatherDataByCityName(city = '') {
     else if(city.toLowerCase() == 'delhi') {
         return { Temp: '40C', Forcast: 'wind' };
     }
+    else if(city.toLowerCase() == 'mumbai') {
+        return { Temp: '35C', Forcast: 'Bohot barish ho rhi hai idhar' };
+    }
     else {
         return { Temp: null, Forcast: 'unable to get data' };
     }
