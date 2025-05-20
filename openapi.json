@@ -38,8 +38,7 @@
               "type": "object",
               "properties": {
                 "Temp": {
-                  "type": "string",
-                  "nullable": true
+                  "type": "string"
                 },
                 "Forcast": {
                   "type": "string"
