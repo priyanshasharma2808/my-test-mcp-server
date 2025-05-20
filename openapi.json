@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.0",
+  "swagger": "2.0",
   "info": {
     "title": "Weather data fetcher",
     "version": "1.0.0"
@@ -7,42 +7,42 @@
   "paths": {
     "/getWeatherDataByCityName": {
       "post": {
+        "tags": [
+          "Agentic",
+          "McpSse"
+        ],
         "summary": "Get weather data by city name",
-        "operationId": "getWeatherDataByCityName",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "city": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "city"
-                ]
-              }
+        "description": "Fetches weather data for a given city name",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ]
             }
           }
-        },
+        ],
         "responses": {
           "200": {
-            "description": "Weather data response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "Temp": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "Forcast": {
-                      "type": "string"
-                    }
-                  }
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Temp": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "Forcast": {
+                  "type": "string"
                 }
               }
             }
@@ -50,13 +50,5 @@
         }
       }
     }
-  },
-  "tags": [
-    {
-      "name": "Agentic"
-    },
-    {
-      "name": "McpSse"
-    }
-  ]
+  }
 }
