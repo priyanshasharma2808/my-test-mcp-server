@@ -64,10 +64,7 @@ app.post('/mcp', async (req, res) => {
         delete transports[transport.sessionId];
       }
     };
-    const server = new McpServer({
-      name: "example-server",
-      version: "1.0.0"
-    });
+    
 
     // ... set up server resources, tools, and prompts ...
 
