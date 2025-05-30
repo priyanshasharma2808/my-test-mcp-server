@@ -142,10 +142,20 @@ async function calculateTax(income = 0) {
 
 server.tool('getWeatherDataByCityName', {
     city: z.string()
-}, async ({ city }) => {
-    return { content: [{ type: "text", text: JSON.stringify(await getWeatherDataByCityName(city)) }] };
-}
-);
+}, async ({ city }, rawInput) => {
+
+    console.log('Tool called: getWeatherDataByCityName');
+    console.log('Input:', city);
+     console.log('Input:', rawInput); // or c
+    const result = await getWeatherDataByCityName(city);
+
+    const response = {
+        content: [{ type: "text", text: JSON.stringify(result) }]
+    };
+
+    console.log('Response (streamed):', response);
+    return response;
+});
 
 server.tool('getPinCodeDataByCityName', {
     city: z.string()
