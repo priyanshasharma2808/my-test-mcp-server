@@ -143,13 +143,18 @@ server.tool('calculateTax', {
 
 let transport = null;
 app.get('/sse', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
     transport = new SSEServerTransport("/messages", res);
     server.connect(transport);
 });
 app.post('/messages', (req, res) => {
     if (transport) {
         transport.handlePostMessage(req, res);
-    }
+    } else {
+    res.status(400).json({ error: 'Transport not initialized.' });
+  }
 });
 app.listen(3000);
 
