@@ -121,8 +121,26 @@ async function getPinCodeDataByCityName(city = '') {
     else if(city.toLowerCase() == 'patna') {
         return { Code: '445'};
     }
+    else if(city.toLowerCase() == 'mumbai') {
+        return { Code: '225'};
+    }
+    else if(city.toLowerCase() == 'delhi') {
+        return { Code: '105'};
+    }
     else {
         return { Code: null};
+    }
+}
+
+async function getStateByPincode(code = 0) {
+    if(code == 225) {
+        return { State: 'rajsthan'};
+    }
+    if(code == 105) {
+        return { State: 'bihar'};
+    }
+    else {
+        return { State: null};
     }
 }
 
@@ -174,6 +192,26 @@ server.tool('calculateTax', {
     console.log('Input:', income);
     console.log('Input:', rawInput); // or c
     const result = await calculateTax(income);
+    const response = {
+        content: [
+            {
+                type: "text",
+                text: JSON.stringify(result)
+            }
+        ]
+    };
+    console.log('Response (streamed):', response);
+    return response;
+});
+
+server.tool('getStateByPincode', {
+    pincode: z.number().min(0)
+}, async ({ pincode }, rawInput ) => {
+
+    console.log('Tool called: getStateByPincode');
+    console.log('Input:', pincode);
+    console.log('Input:', rawInput); // or c
+    const result = await getStateByPincode(pincode);
     const response = {
         content: [
             {
