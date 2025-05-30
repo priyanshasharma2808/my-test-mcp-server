@@ -95,12 +95,52 @@ async function getWeatherDataByCityName(city = '') {
         return { Temp: null, Forcast: 'unable to get data' };
     }
 }
+
+async function getPinCodeDataByCityName(city = '') {
+    if(city.toLowerCase() == 'hyderabad') {
+        return { Code: '123'};
+    }
+    else if(city.toLowerCase() == 'patna') {
+        return { Code: '445'};
+    }
+    else {
+        return { Code: null};
+    }
+}
+
+async function calculateTax(income = 0) {
+    const tax = income <= 500000 ? 0 : (income - 500000) * 0.2;
+    return { tax };
+}
+
 server.tool('getWeatherDataByCityName', {
     city: z.string()
 }, async ({ city }) => {
     return { content: [{ type: "text", text: JSON.stringify(await getWeatherDataByCityName(city)) }] };
 }
 );
+
+server.tool('getPinCodeDataByCityName', {
+    city: z.string()
+}, async ({ city }) => {
+    return { content: [{ type: "text", text: JSON.stringify(await getPinCodeDataByCityName(city)) }] };
+}
+);
+
+server.tool('calculateTax', {
+    income: z.number().min(0)
+}, async ({ income }) => {
+    const result = await calculateTax(income);
+    return {
+        content: [
+            {
+                type: "text",
+                text: JSON.stringify(result)
+            }
+        ]
+    };
+});
+
 let transport = null;
 app.get('/sse', (req, res) => {
     transport = new SSEServerTransport("/messages", res);
