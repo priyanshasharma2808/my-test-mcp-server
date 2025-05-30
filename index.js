@@ -91,20 +91,11 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-    const originalSetHeader = res.setHeader;
-    const headersSet = {};
-
-    res.setHeader = (key, value) => {
-        headersSet[key] = value;
-        originalSetHeader.call(res, key, value);
-    };
-
     const originalEnd = res.end;
     res.end = function (...args) {
-        console.log("Outgoing Response Headers:", headersSet);
+        console.log("Outgoing Response Headers:", res.getHeaders());
         originalEnd.apply(res, args);
     };
-
     next();
 });
 
@@ -159,16 +150,31 @@ server.tool('getWeatherDataByCityName', {
 
 server.tool('getPinCodeDataByCityName', {
     city: z.string()
-}, async ({ city }) => {
-    return { content: [{ type: "text", text: JSON.stringify(await getPinCodeDataByCityName(city)) }] };
+}, async ({ city }, rawInput) => {
+
+    console.log('Tool called: getPinCodeDataByCityName');
+    console.log('Input:', city);
+    console.log('Input:', rawInput); // or c
+    const result = await getPinCodeDataByCityName(city);
+
+    const response = {
+        content: [{ type: "text", text: JSON.stringify(result) }]
+    };
+
+    console.log('Response (streamed):', response);
+    return response;
 }
 );
 
 server.tool('calculateTax', {
     income: z.number().min(0)
-}, async ({ income }) => {
+}, async ({ income }, rawInput ) => {
+
+    console.log('Tool called: calculateTax');
+    console.log('Input:', income);
+    console.log('Input:', rawInput); // or c
     const result = await calculateTax(income);
-    return {
+    const response = {
         content: [
             {
                 type: "text",
@@ -176,6 +182,8 @@ server.tool('calculateTax', {
             }
         ]
     };
+    console.log('Response (streamed):', response);
+    return response;
 });
 
 let transport = null;
