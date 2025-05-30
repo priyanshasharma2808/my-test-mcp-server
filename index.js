@@ -233,6 +233,7 @@ app.get('/sse', (req, res) => {
     server.connect(transport);
 });
 app.post('/messages', (req, res) => {
+    console.log("📥 Full request body:", JSON.stringify(req.body, null, 2));
     if (transport) {
         transport.handlePostMessage(req, res);
     } else {
