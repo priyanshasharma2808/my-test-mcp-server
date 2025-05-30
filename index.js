@@ -81,6 +81,33 @@ const server = new McpServer({
   name: "Weather data fetcher",
   version: "1.0.0"
 });
+
+app.use((req, res, next) => {
+    console.log("Incoming Request:");
+    console.log("URL:", req.url);
+    console.log("Method:", req.method);
+    console.log("Headers:", req.headers);
+    next();
+});
+
+app.use((req, res, next) => {
+    const originalSetHeader = res.setHeader;
+    const headersSet = {};
+
+    res.setHeader = (key, value) => {
+        headersSet[key] = value;
+        originalSetHeader.call(res, key, value);
+    };
+
+    const originalEnd = res.end;
+    res.end = function (...args) {
+        console.log("Outgoing Response Headers:", headersSet);
+        originalEnd.apply(res, args);
+    };
+
+    next();
+});
+
 async function getWeatherDataByCityName(city = '') {
     if(city.toLowerCase() == 'patiala') {
         return { Temp: '30C', Forcast: 'rain' };
