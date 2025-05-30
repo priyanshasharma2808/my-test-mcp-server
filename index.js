@@ -76,6 +76,7 @@ import { z } from 'zod';
 import express from 'express';
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 const app = express();
+app.use(express.json());    
 // Create an MCP server
 const server = new McpServer({
   name: "Weather data fetcher",
@@ -233,7 +234,7 @@ app.get('/sse', (req, res) => {
     server.connect(transport);
 });
 app.post('/messages', (req, res) => {
-    console.log("📥 Full request body:", JSON.stringify(req.body, null, 2));
+    console.log("Full request body:", JSON.stringify(req.body, null, 2));
     if (transport) {
         transport.handlePostMessage(req, res);
     } else {
