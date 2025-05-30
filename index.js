@@ -1,4 +1,5 @@
 import { McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport  } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from 'zod';
 import express from 'express';
 import bodyParser from 'body-parser';
@@ -34,22 +35,37 @@ server.tool('getWeatherDataByCityName', {
 }
 );
 
-app.get('/stream', async (req, res) => {
-  const city = req.query.city;
+let transport = null;
 
-  if (!city) {
-    res.status(400).json({ error: 'City query parameter is required.' });
-    return;
-  }
+app.get('/stream', (req, res) => {
+  transport = new StreamableHTTPServerTransport("/messages", res);
+  server.connect(transport);
+});
 
-  try {
-    const data = await getWeatherDataByCityName(city);
-    res.setHeader('Content-Type', 'application/json');
-    res.write(JSON.stringify({ city, data }));
-    res.end();
-  } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+app.post('/messages', (req, res) => {
+  if (transport) {
+    transport.handlePostMessage(req, res);
+  } else {
+    res.status(400).json({ error: 'Transport not initialized.' });
   }
 });
+
+// app.get('/stream', async (req, res) => {
+//   const city = req.query.city;
+
+//   if (!city) {
+//     res.status(400).json({ error: 'City query parameter is required.' });
+//     return;
+//   }
+
+//   try {
+//     const data = await getWeatherDataByCityName(city);
+//     res.setHeader('Content-Type', 'application/json');
+//     res.write(JSON.stringify({ city, data }));
+//     res.end();
+//   } catch (error) {
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// });
 
 app.listen(3000);
