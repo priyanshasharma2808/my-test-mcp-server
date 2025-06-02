@@ -1,12 +1,21 @@
 import express from "express";
-import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js"
 import { z } from "zod";
+// Map to store transports by session ID
+const transports = {};
+
+// Create an MCP server
+const server = new McpServer({
+  name: "Weather data fetcher",
+  version: "1.0.0"
+});
+
 const app = express();
 app.use(express.json());
 
+// log incoming requests and outgoing responses
 app.use((req, res, next) => {
     console.log("Incoming Request:");
     console.log("URL:", req.url);
@@ -24,16 +33,11 @@ app.use((req, res, next) => {
     next();
 });
 
-// Create an MCP server
-const server = new McpServer({
-  name: "Weather data fetcher",
-  version: "1.0.0"
-});
-// Map to store transports by session ID
-const transports = {};
-
+app.listen(3000);
 // Handle POST requests for client-to-server communication
 app.post('/mcp', async (req, res) => {
+    console.log('call recived on /mcp url');
+    console.log('Request Body:', JSON.stringify(req.body));
   // Check for existing session ID
   const sessionId = req.headers['mcp-session-id'];
   let transport ;
@@ -41,23 +45,26 @@ app.post('/mcp', async (req, res) => {
   if (sessionId && transports[sessionId]) {
     // Reuse existing transport
     transport = transports[sessionId];
+    console.log('Reuse existing transport session id');
+    console.log('Session ID:', sessionId);
   } else if (!sessionId && isInitializeRequest(req.body)) {
     
     // New initialization request
+    console.log('isInitializeRequest called');
     transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => `FnO-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
       onsessioninitialized: (sessionId) => {
         // Store the transport by session ID
         transports[sessionId] = transport;
+        console.log('New session initialized with sessionId:', sessionId); 
       }
     });
 
-    console.log('isInitializeRequest called');
-    console.log('sessionId:', sessionId);
-
     // Clean up transport when closed
     transport.onclose = () => {
+    
       if (transport.sessionId) {
+        console.log('Transport closed for sessionId:', transport.sessionId);
         delete transports[transport.sessionId];
       }
     };
@@ -69,6 +76,7 @@ app.post('/mcp', async (req, res) => {
     await server.connect(transport);
   } else {
     // Invalid request
+    console.log('Invalid request: No valid session ID provided');
     res.status(400).json({
       jsonrpc: '2.0',
       error: {
@@ -80,31 +88,45 @@ app.post('/mcp', async (req, res) => {
     return;
   }
 
-  // Handle the request
-  await transport.handleRequest(req, res, req.body);
+  try {
+        // ...existing code...
+        await transport.handleRequest(req, res, req.body);
+        console.log('Response Status:', res.statusCode);
+    } catch (err) {
+        console.error('Error handling /mcp request:', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
+
 
 // Reusable handler for GET and DELETE requests
 const handleSessionRequest = async (req, res) => {
   const sessionId = req.headers['mcp-session-id'];
+  console.log('call recived on handleSessionRequest');
+  console.log('Session ID:', sessionId);
+
   if (!sessionId || !transports[sessionId]) {
     res.status(400).send('Invalid or missing session ID');
     return;
   }
   
   const transport = transports[sessionId];
-  await transport.handleRequest(req, res);
+  try {
+        await transport.handleRequest(req, res);
+        console.log('Response Status:', res.statusCode);
+    } catch (err) {
+        console.error('Error handling session request:', err);
+        res.status(500).send('Internal Server Error');
+    }
 };
 
-// Handle GET requests for server-to-client notifications via SSE
+// Handle GET requests for server-to-client notifications 
 app.get('/mcp', handleSessionRequest);
 
 // Handle DELETE requests for session termination
 app.delete('/mcp', handleSessionRequest);
 
-app.listen(3000);
-
-
+// functions acting as resource to simulate data fetching for tools
 async function getWeatherDataByCityName(city = '') {
     if(city.toLowerCase() == 'patiala') {
         return { Temp: '30C', Forcast: 'rain' };
@@ -155,6 +177,8 @@ async function calculateTax(income = 0) {
     return { tax };
 }
 
+
+// adding functions as tools to the MCP server
 server.tool('getWeatherDataByCityName', {
     city: z.string()
 }, async ({ city }, rawInput) => {
