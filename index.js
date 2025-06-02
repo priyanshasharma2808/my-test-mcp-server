@@ -29,30 +29,6 @@ const server = new McpServer({
   name: "Weather data fetcher",
   version: "1.0.0"
 });
-// async function getWeatherDataByCityName(city = '') {
-//     if(city.toLowerCase() == 'patiala') {
-//         return { Temp: '30C', Forcast: 'rain' };
-//     }
-//     else if(city.toLowerCase() == 'delhi') {
-//         return { Temp: '40C', Forcast: 'wind' };
-//     }
-//     else if(city.toLowerCase() == 'mumbai') {
-//         return { Temp: '35C', Forcast: 'Bohot barish ho rhi hai idhar' };
-//     }
-//     else if(city.toLowerCase() == 'chandigarh') {
-//         return { Temp: '32C', Forcast: 'sunny' };   
-//     }
-//     else {
-//         return { Temp: null, Forcast: 'unable to get data' };
-//     }
-// }
-// server.tool('getWeatherDataByCityName', {
-//     city: z.string()
-// }, async ({ city }) => {
-//     return { content: [{ type: "text", text: JSON.stringify(await getWeatherDataByCityName(city)) }] };
-// }
-// );
-
 // Map to store transports by session ID
 const transports = {};
 
@@ -66,14 +42,18 @@ app.post('/mcp', async (req, res) => {
     // Reuse existing transport
     transport = transports[sessionId];
   } else if (!sessionId && isInitializeRequest(req.body)) {
+    
     // New initialization request
     transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
+      sessionIdGenerator: () => `FnO-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
       onsessioninitialized: (sessionId) => {
         // Store the transport by session ID
         transports[sessionId] = transport;
       }
     });
+
+    console.log('isInitializeRequest called');
+    console.log('sessionId:', sessionId);
 
     // Clean up transport when closed
     transport.onclose = () => {
@@ -124,37 +104,6 @@ app.delete('/mcp', handleSessionRequest);
 
 app.listen(3000);
 
-
-
-
-
-// import { McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
-// import { z } from 'zod';
-// import express from 'express';
-// import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-// const app = express();   
-// // Create an MCP server
-// const server = new McpServer({
-//   name: "Weather data fetcher",
-//   version: "1.0.0"
-// });
-
-// app.use((req, res, next) => {
-//     console.log("Incoming Request:");
-//     console.log("URL:", req.url);
-//     console.log("Method:", req.method);
-//     console.log("Headers:", req.headers);
-//     next();
-// });
-
-// app.use((req, res, next) => {
-//     const originalEnd = res.end;
-//     res.end = function (...args) {
-//         console.log("Outgoing Response Headers:", res.getHeaders());
-//         originalEnd.apply(res, args);
-//     };
-//     next();
-// });
 
 async function getWeatherDataByCityName(city = '') {
     if(city.toLowerCase() == 'patiala') {
@@ -281,20 +230,4 @@ server.tool('getStateByPincode', {
     return response;
 });
 
-// let transport = null;
-// app.get('/sse', (req, res) => {
-//     res.setHeader('Content-Type', 'text/event-stream');
-//     res.setHeader('Cache-Control', 'no-cache');
-//     res.setHeader('Connection', 'keep-alive');
-//     transport = new SSEServerTransport("/messages", res);
-//     server.connect(transport);
-// });
-// app.post('/messages', (req, res) => {
-//     if (transport) {
-//         transport.handlePostMessage(req, res);
-//     } else {
-//     res.status(400).json({ error: 'Transport not initialized.' });
-//   }
-// });
-// app.listen(3000);
 
